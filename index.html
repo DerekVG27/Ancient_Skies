@@ -1,4 +1,4 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>
+<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"></head><body>
 <title>Cielos Antiguos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&family=Chakra+Petch:wght@400;500;600&display=swap">
@@ -217,6 +217,10 @@ a{color:inherit}
 
 
 /* torneo por duelos */
+.pwrow{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.pw.p2{font-size:.85rem;background:linear-gradient(#5a7a9a,#2e4a66)}
+.pw.p2.ready{background:linear-gradient(#bff3ff,#3da0e0 55%,#1f6fb0);box-shadow:0 4px 0 var(--ink),0 0 16px #3da0e0}
+.ph .pwrow .pw{flex:1}
 .stage.dimmed>*{opacity:.18;transition:opacity .3s}
 .tower{transition:transform .5s,opacity .5s}
 .tower.waiting{transform:scale(.55) translateY(-40%);opacity:.75;filter:saturate(.7)}
@@ -305,7 +309,7 @@ a{color:inherit}
     <div class="modes">
       <a class="mode game" href="#juego">
         <div class="art" id="art-towers"></div>
-        <div class="txt"><h2>Táctica Royale</h2><p>Torneo de civilizaciones por duelos: preguntas de 10 segundos, eventos celestes y dioses que atacan.</p><span class="cr-btn">Abrir en el proyector</span></div>
+        <div class="txt"><h2>Táctica Royale</h2><p>Torneo de civilizaciones por duelos: preguntas de 15 segundos, eventos celestes y dioses que atacan.</p><span class="cr-btn">Abrir en el proyector</span></div>
       </a>
       <a class="mode phone" href="#equipo">
         <div class="art"><div class="phone-mock"><b style="background:#3d8bff">A</b><b style="background:#e8486b">B</b><b style="background:#f39c1f">C</b><b style="background:#20b36f">D</b></div></div>
@@ -361,4 +365,5 @@ a{color:inherit}
   (function tw(t){if(!document.getElementById('v-inicio').hidden){cx.drawImage(bg,0,0);for(const s of st){cx.globalAlpha=.3+.7*Math.abs(Math.sin(s.p+(reduce?0:t/1500)));cx.fillStyle='#fff';cx.beginPath();cx.arc(s.x,s.y,s.r,0,7);cx.fill()}cx.globalAlpha=1}requestAnimationFrame(tw)})(0);
 })();
 </script>
+
 </body></html>

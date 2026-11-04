@@ -2,12 +2,12 @@
 (function(){
 'use strict';
 const TEAMS={
-  m:{name:'Mayas',adj:'Maya',color:'#20c08f',dark:'#0b6b50',light:'#8ff5cf',keys:['1','2','3','4'],pkey:'5',god:'Kukulkán',power:'Invocar a Kukulkán',pdesc:'La serpiente emplumada causa 180 de daño y tu daño ×2 esta ronda.',obs:4},
-  c:{name:'China',adj:'China',color:'#ef4a42',dark:'#8e1d1a',light:'#ffb3a8',keys:['q','w','e','r'],pkey:'t',god:'Dragón Azul',power:'Invocar al Dragón Azul',pdesc:'El guardián del cielo del este roba 200 PS al rival.',obs:0},
-  e:{name:'Egipto',adj:'Egipcia',color:'#f5b731',dark:'#94620a',light:'#ffe9a8',keys:['a','s','d','f'],pkey:'g',god:'Ra',power:'Invocar a Ra',pdesc:'La barca solar cura 250 PS y recibes la mitad del daño esta ronda.',obs:2}
+  m:{name:'Mayas',adj:'Maya',color:'#20c08f',dark:'#0b6b50',light:'#8ff5cf',keys:['1','2','3','4'],pkey:'5',p2key:'6',p2:'Ofrenda de cacao',p2i:'🌿',p2desc:'Recuperas 90 PS al final de la ronda.',god:'Kukulkán',power:'Invocar a Kukulkán',pdesc:'La serpiente emplumada causa 180 de daño y tu daño ×2 esta ronda.',obs:4},
+  c:{name:'China',adj:'China',color:'#ef4a42',dark:'#8e1d1a',light:'#ffb3a8',keys:['q','w','e','r'],pkey:'t',p2key:'y',p2:'Espejo de bronce',p2i:'🪞',p2desc:'La mitad del daño que recibas esta ronda rebota al rival (máx. 120).',god:'Dragón Azul',power:'Invocar al Dragón Azul',pdesc:'El guardián del cielo del este roba 200 PS al rival.',obs:0},
+  e:{name:'Egipto',adj:'Egipcia',color:'#f5b731',dark:'#94620a',light:'#ffe9a8',keys:['a','s','d','f'],pkey:'g',p2key:'h',p2:'Arpón de Horus',p2i:'🔱',p2desc:'Horus lanza su arpón: 75 de daño directo al rival.',god:'Ra',power:'Invocar a Ra',pdesc:'La barca solar cura 250 PS y recibes la mitad del daño esta ronda.',obs:2}
 };
 const ORDER=['m','c','e'];
-const MAXHP=700, QTIME=10000, DUELQ=4, PCOST=10;
+const MAXHP=700, QTIME=15000, DUELQ=4, PCOST=10, P2COST=5;
 const L=['A','B','C','D'];
 const CIVTAG={e:['Egipto','#c98512'],c:['China','#d8352d'],m:['Mayas','#119a6c'],x:['El ensayo','#6b4bd8'],b:['¡Bonus!','#c94cf0']};
 const DEFAULT_URL='https://claude.ai/artifact/WEWvawGWCdDZJMsDsN314E';
@@ -304,9 +304,9 @@ function playEvent(key){
 }
 
 /* =================== ANFITRIÓN =================== */
-let H=null;
+let H=null; window.__gH=()=>H;
 function newState(){ return {gid:Math.random().toString(36).slice(2,8),phase:'lobby',pool:[],evs:[],qn:0,cur:null,
-  matches:[],mi:-1,duel:null,wait:null,dq:0,hp:{m:MAXHP,c:MAXHP,e:MAXHP},en:{m:0,c:0,e:0},pwOn:{},ans:{},qStart:0,res:null,winner:null,streak:{m:0,c:0,e:0}}; }
+  matches:[],mi:-1,duel:null,wait:null,dq:0,hp:{m:MAXHP,c:MAXHP,e:MAXHP},en:{m:0,c:0,e:0},pwOn:{},pw2On:{},ans:{},qStart:0,res:null,winner:null,streak:{m:0,c:0,e:0}}; }
 let room=null, hostBuilt=false, timerId=null, players={m:0,c:0,e:0}, code=null, joinUrl=(window.claude?store.get('cielos-url')||DEFAULT_URL:location.href.split('#')[0]), named=null;
 
 function host(){
@@ -333,9 +333,9 @@ function host(){
         <div class="plat">${Art.tower(t)}<div class="cracks"></div></div>
         <div class="ttl">${TEAMS[t].name}</div>
         <div class="elix">${'<i></i>'.repeat(10)}</div>
-        <button class="pw" id="pw-${t}" disabled title="${esc(TEAMS[t].pdesc)}">⚡ ${TEAMS[t].power}</button>
+        <div class="pwrow"><button class="pw" id="pw-${t}" disabled title="${esc(TEAMS[t].pdesc)}">⚡ ${TEAMS[t].god}</button><button class="pw p2" id="pw2-${t}" disabled title="${esc(TEAMS[t].p2desc)}">${TEAMS[t].p2i} ${TEAMS[t].p2}</button></div>
         <div class="mods">${L.map((l,k)=>`<button data-t="${t}" data-k="${k}">${l}</button>`).join('')}</div>
-        <div class="keys">Teclas ${TEAMS[t].keys.join(' ').toUpperCase()} · dios ${TEAMS[t].pkey.toUpperCase()} · <span id="pl-${t}">0</span> 📱</div>
+        <div class="keys">Teclas ${TEAMS[t].keys.join(' ').toUpperCase()} · dios ${TEAMS[t].pkey.toUpperCase()} · ${TEAMS[t].p2i} ${TEAMS[t].p2key.toUpperCase()} · <span id="pl-${t}">0</span> 📱</div>
         <div class="waitlbl">En espera</div>
       </div>`).join('')}
     </div>
@@ -345,7 +345,7 @@ function host(){
   $('#g-mod').onclick=()=>document.body.classList.toggle('modmode');
   $('#g-full').onclick=()=>{try{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}catch(e){}};
   root.querySelectorAll('.mods button').forEach(b=>b.onclick=()=>answer(b.dataset.t,+b.dataset.k,performance.now()));
-  ORDER.forEach(t=>$('#pw-'+t).onclick=()=>activatePower(t));
+  ORDER.forEach(t=>{ $('#pw-'+t).onclick=()=>activatePower(t); $('#pw2-'+t).onclick=()=>activatePower2(t); });
   addEventListener('keydown',onKey);
   connectHost(); renderLobby(); renderTowers();
 }
@@ -371,15 +371,16 @@ function onPeers(peers){
   const cnt={m:0,c:0,e:0};
   for(const p of peers){ const pr=p.presence||{}; if(pr.r!=='p'||!TEAMS[pr.t]) continue; cnt[pr.t]++;
     if(pr.g!==H.gid) continue;
-    if(H.phase==='q'&&pr.a&&pr.a.qi===H.qn&&typeof pr.a.k==='number'){ const t=performance.now()-(Date.now()-p.updatedAt); answer(pr.t,pr.a.k,Math.max(H.qStart,t)); }
-    if(H.phase==='q'&&pr.pw===H.qn) activatePower(pr.t); }
+    if(H.phase==='q'&&pr.a&&pr.a.qi===H.qid&&typeof pr.a.k==='number'){ const t=performance.now()-(Date.now()-p.updatedAt); answer(pr.t,pr.a.k,Math.max(H.qStart,t)); }
+    if(H.phase==='q'&&pr.pw===H.qid) activatePower(pr.t);
+    if(H.phase==='q'&&pr.pw2===H.qid) activatePower2(pr.t); }
   players=cnt; ORDER.forEach(t=>{const e=$('#pl-'+t); if(e) e.textContent=cnt[t]});
   if(H.phase==='lobby'){ const e=$('#lb-count'); if(e) e.innerHTML=countHtml(); }
 }
 function setArena(on){ const v=$('#v-juego'); v.classList.toggle('noarena',!on); const bg=v.querySelector('.g-bg'); bg&&bg._rebuild&&bg._rebuild(); }
 function publish(){
   const R=named||room; if(!R) return; const q=H.cur;
-  const st={r:'host',g:H.gid,ph:H.phase,qi:H.qn,hp:H.hp,en:H.en,lk:Object.keys(H.ans),pw:Object.keys(H.pwOn),duel:H.duel,wait:H.wait,m:H.mi+1};
+  const st={r:'host',g:H.gid,ph:H.phase,qi:H.qid||0,hp:H.hp,en:H.en,lk:Object.keys(H.ans),pw:Object.keys(H.pwOn),pw2:Object.keys(H.pw2On),duel:H.duel,wait:H.wait,m:H.mi+1};
   if(q&&(H.phase==='q'||H.phase==='rev')){ st.q=q.q; st.o=q.o; st.rem=Math.max(0,QTIME-(performance.now()-H.qStart)); st.bonus=q.bonus?1:0; }
   if(H.phase==='rev'&&H.res){ st.ok=q.a; st.res=H.res.summary; }
   if(H.phase==='event') st.ev=H.cur&&H.cur.evTitle;
@@ -399,11 +400,11 @@ function renderLobby(){
       <div class="lb-title"><span>Mayas</span><i>VS</i><span>China</span><i>VS</i><span>Egipto</span></div>
       <div class="rules">
         <div class="rule"><b>Torneo por duelos</b>Duelo 1: dos civilizaciones. Duelo 2: la ganadora contra la que esperaba. Duelo 3: las otras dos. Gran final: la ganadora del duelo 3 contra la del duelo 2.</div>
-        <div class="rule"><b>Cada duelo</b>${MAXHP} PS por torre y hasta ${DUELQ} preguntas de 10 s. Quien acierta primero golpea más fuerte; responder en menos de 2 s es ¡crítico! Fallar cuesta 60 PS.</div>
+        <div class="rule"><b>Cada duelo</b>${MAXHP} PS por torre y hasta ${DUELQ} preguntas de 15 s. Quien acierta primero golpea más fuerte; responder en menos de 3 s es ¡crítico! Fallar cuesta 60 PS.</div>
         <div class="rule"><b>Eventos celestes</b>Cada 3 preguntas el cielo hace algo increíble y llega una pregunta bonus que cura y carga energía.</div>
         <div class="rule"><b>Dioses</b>La energía se carga más rápido si vas perdiendo. Con 10 de energía, invoca a tu dios durante una pregunta.</div>
       </div>
-      <div class="powers">${ORDER.map(t=>`<div class="power" style="--tc:${TEAMS[t].color}">${Art.crest(t,40)}<div><b>${TEAMS[t].god}</b><span>${TEAMS[t].pdesc}</span></div></div>`).join('')}</div>
+      <div class="powers">${ORDER.map(t=>`<div class="power" style="--tc:${TEAMS[t].color}">${Art.crest(t,40)}<div><b>${TEAMS[t].god} · 10 ⚡</b><span>${TEAMS[t].pdesc}</span><b style="margin-top:4px">${TEAMS[t].p2i} ${TEAMS[t].p2} · 5 ⚡</b><span>${TEAMS[t].p2desc}</span></div></div>`).join('')}</div>
       <button class="cr-btn big" id="g-start">¡Comenzar el torneo! ▶</button>
     </div>
     <div class="lb-qr">
@@ -436,7 +437,8 @@ function renderTowers(){
     tw.querySelectorAll('.elix i').forEach((e,i)=>e.classList.toggle('on',i<H.en[t]));
     const pw=$('#pw-'+t); const can=inDuel(t)&&hp>0&&H.en[t]>=PCOST&&!H.pwOn[t];
     pw.disabled=!(H.phase==='q'&&can); pw.classList.toggle('ready',can); pw.classList.toggle('active',!!H.pwOn[t]);
-    const b=[]; if(inDuel(t)&&hp>0&&hp<=MAXHP*.35) b.push('<span class="badge fury">🔥 Furia +50 %</span>'); if(H.pwOn[t]) b.push(`<span class="badge pwb">⚡ ${TEAMS[t].god}</span>`); if(H.streak[t]>=2) b.push(`<span class="badge">🔥 Racha ×${H.streak[t]}</span>`);
+    const p2=$('#pw2-'+t); const can2=inDuel(t)&&hp>0&&H.en[t]>=P2COST&&!H.pw2On[t]; p2.disabled=!(H.phase==='q'&&can2); p2.classList.toggle('ready',can2); p2.classList.toggle('active',!!H.pw2On[t]);
+    const b=[]; if(inDuel(t)&&hp>0&&hp<=MAXHP*.35) b.push('<span class="badge fury">🔥 Furia +50 %</span>'); if(H.pwOn[t]) b.push(`<span class="badge pwb">⚡ ${TEAMS[t].god}</span>`); if(H.pw2On[t]) b.push(`<span class="badge pwb">${TEAMS[t].p2i} ${TEAMS[t].p2}</span>`); if(H.streak[t]>=2) b.push(`<span class="badge">🔥 Racha ×${H.streak[t]}</span>`);
     $('#bd-'+t).innerHTML=b.join('');
   }
 }
@@ -483,7 +485,7 @@ function vsIntro(){
 function prepQ(src,special){ const perm=shuffle([0,1,2,3]); return {q:src.q,o:perm.map(i=>src.o[i]),a:perm.indexOf(0),x:src.x,c:src.c,d:src.d,special}; }
 function nextStep(){
   if(H.phase==='end') return;
-  H.ans={}; H.pwOn={}; H.res=null;
+  H.ans={}; H.pwOn={}; H.pw2On={}; H.res=null;
   // ¿toca evento celeste? (cada 3 preguntas)
   if(H.qn>0&&H.qn%3===0&&!H.evDone){ H.evDone=true; const key=H.evs[(H.qn/3-1)%H.evs.length]; const ev=EVENTS[key];
     H.cur=prepQ(ev.q,false); H.cur.bonus=true; H.cur.c='b'; H.cur.evTitle=ev.title;
@@ -503,7 +505,7 @@ function nextStep(){
 function showQ(){
   if(H.phase!=='ready') return;
   const q=H.cur, tag=CIVTAG[q.c];
-  H.phase='q'; H.qStart=performance.now();
+  H.phase='q'; H.qStart=performance.now(); H.qid=(H.qid||0)+1;
   $('#g-stage').innerHTML=`<div class="qcard${q.bonus?' is-bonus':''}${q.special?' is-super':''}">
     <div class="ribbon" style="--rc:${tag[1]}">${tag[0]}${q.special?' · ×2':''}${q.bonus?' · ×1,5':''}</div>
     <div class="qhead"><p class="qtext">${esc(q.q)}</p><div class="timer" id="g-timer"><span id="g-tn">10</span></div></div>
@@ -520,7 +522,7 @@ function showQ(){
 function onKey(ev){
   if($('#v-juego').hidden) return; if(ev.target.closest&&ev.target.closest('input,select,textarea,details')) return;
   const k=ev.key.toLowerCase();
-  if(H.phase==='q') for(const t of ORDER){ const i=TEAMS[t].keys.indexOf(k); if(i>=0){answer(t,i,performance.now());return;} if(k===TEAMS[t].pkey){activatePower(t);return;} }
+  if(H.phase==='q') for(const t of ORDER){ const i=TEAMS[t].keys.indexOf(k); if(i>=0){answer(t,i,performance.now());return;} if(k===TEAMS[t].pkey){activatePower(t);return;} if(k===TEAMS[t].p2key){activatePower2(t);return;} }
   if((k===' '||k==='enter')&&!ev.repeat){ const btn=$('#g-next')||$('#g-bgo')||$('#g-start'); if(btn&&!btn.disabled){ev.preventDefault();btn.click();} }
 }
 function answer(t,k,time){
@@ -532,6 +534,11 @@ function answer(t,k,time){
 function towerPt(t,top){ const r=$('#tw-'+t+' svg.tw').getBoundingClientRect(), f=$('#g-fx').getBoundingClientRect(); return [r.left+r.width/2-f.left,r.top+r.height*(top?.12:.5)-f.top]; }
 function floatTxt(t,txt,cls){ const [x,y]=towerPt(t); const d=document.createElement('div'); d.className='dmg '+(cls||''); d.style.left=x+'px'; d.style.top=y+'px'; d.textContent=txt; $('#g-main-fx').appendChild(d); setTimeout(()=>d.remove(),1500); }
 function shake(big){ const m=$('#g-main'); m.classList.remove('shake','shake2'); void m.offsetWidth; m.classList.add(big?'shake2':'shake'); }
+function activatePower2(t){
+  if(H.phase!=='q'||!inDuel(t)||H.hp[t]<=0||H.en[t]<P2COST||H.pw2On[t]) return;
+  H.pw2On[t]=true; H.en[t]-=P2COST; sfx.lock(); const [x,y]=towerPt(t); FX.burst(x,y,TEAMS[t].light,34,4);
+  floatTxt(t,TEAMS[t].p2i+' '+TEAMS[t].p2,'pwr'); renderTowers(); publish();
+}
 function activatePower(t){
   if(H.phase!=='q'||!inDuel(t)||H.hp[t]<=0||H.en[t]<PCOST||H.pwOn[t]) return;
   H.pwOn[t]=true; H.en[t]-=PCOST; sfx.power(); const [x,y]=towerPt(t); FX.burst(x,y,TEAMS[t].color,60,6);
@@ -548,9 +555,13 @@ function reveal(){
   for(const t of al) if(H.pwOn[t]){ const o=al.find(x=>x!==t); if(t==='m'&&o) steps.push({type:'god',from:t,to:o,amt:180}); if(t==='c'&&o) steps.push({type:'god',from:t,to:o,amt:200,steal:true}); if(t==='e') steps.push({type:'god',from:t,to:o,amt:250,heal:true}); }
   if(q.bonus) correct.forEach(t=>steps.push({type:'heal',to:t,amt:100}));
   correct.forEach((t,r)=>{ summary[t].rank=r+1; const tt=H.ans[t].t, frac=Math.max(0,(QTIME-tt)/QTIME); let dmg=(RANK[r][0]+RANK[r][1]*frac)*mult;
-    const crit=r===0&&tt<2000; if(crit) dmg*=1.3; if(H.hp[t]<=MAXHP*.35) dmg*=1.5; if(H.pwOn.m&&t==='m') dmg*=2; if(H.streak[t]>=2) dmg*=1.15; dmg=Math.round(dmg/10)*10;
+    const crit=r===0&&tt<3000; if(crit) dmg*=1.3; if(H.hp[t]<=MAXHP*.35) dmg*=1.5; if(H.pwOn.m&&t==='m') dmg*=2; if(H.streak[t]>=2) dmg*=1.15; dmg=Math.round(dmg/10)*10;
     al.filter(o=>o!==t).forEach(o=>{ let d=dmg; if(o==='e'&&H.pwOn.e) d=Math.round(d/20)*10; steps.push({type:'hit',from:t,to:o,amt:d,crit}); }); });
   al.forEach(t=>{ if(H.ans[t]&&H.ans[t].k!==q.a&&!(t==='m'&&H.pwOn.m)) steps.push({type:'self',to:t,amt:Math.round(60*mult)}); });
+  // poderes secundarios
+  if(H.pw2On.e&&al.includes('e')){ const o=al.find(x=>x!=='e'); if(o) steps.push({type:'spear',from:'e',to:o,amt:75}); }
+  if(H.pw2On.c&&al.includes('c')){ const o=al.find(x=>x!=='c'); if(o){ let tot=0; for(const st of steps){ if(st.to==='c'&&(st.type==='hit'||st.type==='spear'||(st.type==='god'&&!st.heal))) tot+=st.amt; } const amt=Math.min(120,Math.round(tot*0.5/10)*10); if(amt>0) steps.push({type:'reflect',from:'c',to:o,amt}); else steps.push({type:'fizzle',to:'c'}); } }
+  if(H.pw2On.m&&al.includes('m')) steps.push({type:'heal',to:'m',amt:90,cacao:true});
   al.forEach(t=>{ H.streak[t]=summary[t].ok&&summary[t].rank===1?H.streak[t]+1:0; });
   H.res={summary,steps};
   document.querySelectorAll('.opt').forEach(o=>{const k=+o.dataset.k; o.classList.toggle('correct',k===q.a); o.classList.toggle('dim',k!==q.a);});
@@ -584,7 +595,10 @@ async function playSteps(steps){
       else if(s.steal){ const a=Math.min(s.amt,H.hp[s.to]); applyHp(s.to,-a); floatTxt(s.to,'-'+a,'crit'); applyHp(s.from,a); floatTxt(s.from,'+'+a,'heal'); shake(true); const [x,y]=towerPt(s.to); FX.burst(x,y,'#6fb3ff',90,10); }
       else { applyHp(s.to,-s.amt); floatTxt(s.to,'-'+s.amt,'crit'); shake(true); const [x,y]=towerPt(s.to); FX.burst(x,y,'#20c08f',110,11); FX.debris(x,y,30); }
       await wait(700); continue; }
-    if(s.type==='heal'){ sfx.heal(); applyHp(s.to,s.amt); floatTxt(s.to,'+'+s.amt,'heal'); const [x,y]=towerPt(s.to); FX.burst(x,y,'#4ade80',36,4); }
+    if(s.type==='spear'){ if(H.hp[s.to]<=0) continue; floatTxt(s.from,'🔱 ¡Arpón de Horus!','pwr'); await shootP('e',s.from,s.to,'#ffe9a8'); sfx.hit(); const [x,y]=towerPt(s.to); FX.burst(x,y,'#ffd23f',60,9); shake(false); applyHp(s.to,-s.amt); floatTxt(s.to,'-'+s.amt,'crit'); await wait(250); continue; }
+    if(s.type==='reflect'){ if(H.hp[s.to]<=0) continue; floatTxt(s.from,'🪞 ¡Reflejo!','pwr'); await shootP('c',s.from,s.to,'#ffb3a8'); sfx.hit(); const [x,y]=towerPt(s.to); FX.burst(x,y,'#ffffff',50,8); applyHp(s.to,-s.amt); floatTxt(s.to,'-'+s.amt+' 🪞','crit'); await wait(250); continue; }
+    if(s.type==='fizzle'){ floatTxt(s.to,'🪞 Sin daño que reflejar','bad'); await wait(300); continue; }
+    if(s.type==='heal'){ if(s.cacao) floatTxt(s.to,'🌿 Ofrenda de cacao','pwr'); sfx.heal(); applyHp(s.to,s.amt); floatTxt(s.to,'+'+s.amt,'heal'); const [x,y]=towerPt(s.to); FX.burst(x,y,'#4ade80',36,4); }
     else if(s.type==='hit'){ if(H.hp[s.to]<=0) continue; await shootP(s.from,s.from,s.to,TEAMS[s.from].color); sfx.hit(); const [x,y]=towerPt(s.to); FX.burst(x,y,TEAMS[s.from].color,50,9); FX.debris(x,y,s.crit?24:12); if(H.hp[s.to]-s.amt<MAXHP*.4) FX.smoke(x,y,6);
       shake(s.crit); applyHp(s.to,-s.amt); floatTxt(s.to,'-'+s.amt,s.crit?'crit':''); if(s.crit){ floatTxt(s.from,'¡CRÍTICO!','pwr'); FX.flash(TEAMS[s.from].color,.25); } }
     else if(s.type==='self'){ if(H.hp[s.to]<=0) continue; sfx.hit(); applyHp(s.to,-s.amt); floatTxt(s.to,'-'+s.amt+' ✘','bad'); const [x,y]=towerPt(s.to); FX.debris(x,y,8); }
@@ -672,11 +686,11 @@ function renderPhone(){
     else if(h.ph==='event') body=`<div class="status sky">✨ ¡Miren al proyector!<small>${esc(h.ev||'Algo pasa en el cielo…')}</small></div>`;
     else if(h.ph==='ready') body=`<div class="status">¡Prepárense!<small>Viene la ${h.bonus?'pregunta bonus':'siguiente pregunta'}…</small></div>`;
     else if(h.ph==='q'){
-      const locked=(h.lk||[]).includes(P.team)||P.sentQi===h.qi, canPw=en>=PCOST&&!(h.pw||[]).includes(P.team);
+      const locked=(h.lk||[]).includes(P.team)||P.sentQi===h.qi, canPw=en>=PCOST&&!(h.pw||[]).includes(P.team), canP2=en>=P2COST&&!(h.pw2||[]).includes(P.team);
       if(dead) body=`<div class="status">Tu torre cayó.<small>¡Ánimo para el siguiente duelo!</small></div>`;
       else body=`<div class="bar"><i id="ph-bar"></i></div><div class="pq">${h.bonus?'<span class="pb">BONUS</span> ':''}${esc(h.q||'')}</div>
         ${locked?`<div class="status ok">¡Respuesta enviada! 🔒</div>`:`<div class="popts">${(h.o||[]).map((o,k)=>`<button class="opt" data-k="${k}"><b>${L[k]}</b><span>${esc(o)}</span></button>`).join('')}</div>`}
-        <button class="pw ${canPw?'ready':''}" id="ph-pw" ${canPw?'':'disabled'}>⚡ ${T.power} (${en}/10)</button>`;
+        <div class="pwrow"><button class="pw ${canPw?'ready':''}" id="ph-pw" ${canPw?'':'disabled'}>⚡ ${T.god} (10)</button><button class="pw p2 ${canP2?'ready':''}" id="ph-pw2" ${canP2?'':'disabled'}>${T.p2i} ${T.p2} (5)</button></div><div class="note" style="text-align:center">Energía ${en}/10</div>`;
     }
     else if(h.ph==='rev'){ const r=h.res&&h.res[P.team];
       body=`<div class="status ${r&&r.ok?'ok':'bad'}">${!r?'Ronda terminada':r.ok?`✔ ¡Correcto! Lugar ${r.rank}`:r.ans==null?'Sin respuesta':'✘ Incorrecta'}<small>Respuesta: ${L[h.ok]} · ${esc((h.o||[])[h.ok]||'')}</small></div>`; }
@@ -685,6 +699,7 @@ function renderPhone(){
   el.innerHTML=`<div class="ph-team" style="--tc:${T.color};--td:${T.dark}">${Art.crest(P.team,46)}<h2>${T.name}</h2><span></span><button class="pill" id="ph-chg">Cambiar</button></div>`+body;
   $('#ph-chg').onclick=()=>{P.team=null;store.set('cielos-team','');renderPhone();};
   el.querySelectorAll('.popts .opt').forEach(b=>b.onclick=()=>{ if(!P.R||!h) return; P.sentQi=h.qi; P.R.presence({r:'p',t:P.team,g:h.g,a:{qi:h.qi,k:+b.dataset.k}}).catch(()=>{}); try{navigator.vibrate&&navigator.vibrate(40)}catch(e){} renderPhone(); });
+  const pw2=$('#ph-pw2'); if(pw2) pw2.onclick=()=>{ if(P.R&&h) P.R.presence({pw2:h.qi,g:h.g,r:'p',t:P.team}).catch(()=>{}); pw2.disabled=true; };
   const pw=$('#ph-pw'); if(pw) pw.onclick=()=>{ if(P.R&&h) P.R.presence({pw:h.qi,g:h.g,r:'p',t:P.team}).catch(()=>{}); pw.disabled=true; };
 }
 function tickPhone(){ const b=$('#ph-bar'), h=P.host; if(!b||!h||h.ph!=='q') return; const rem=Math.max(0,(h.rem||0)-(Date.now()-P.hostAt)); b.style.width=(rem/QTIME*100)+'%'; }

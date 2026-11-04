@@ -1,6 +1,3 @@
 Cielos Antiguos
 
-Incluye peerjs.min.js (PeerJS 1.5.4, licencia MIT, https://peerjs.com) para conectar los celulares.
-Texturas de planetas: NASA (dominio publico), via los paquetes solar-system y three-globe (MIT).
-Catalogo de estrellas y constelaciones: d3-celestial (BSD).
-Three.js r128 desde cdnjs (MIT).
+PeerJS 1.5.4 (MIT). Texturas: NASA (dominio publico) via solar-system y three-globe (MIT). Estrellas y constelaciones: d3-celestial (BSD). Three.js r128 (MIT).
