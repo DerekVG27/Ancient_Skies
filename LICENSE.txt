@@ -1,0 +1,23 @@
+CIELOS ANTIGUOS — LICENCIA DE USO PROPIETARIA
+Copyright © 2026 Derek Vásquez González · Frost Industries · Athenea Tec Division.
+Todos los derechos reservados.
+
+1. Titularidad. Este software (código fuente y compilado, diseño, textos, simulaciones, gráficos y la
+   selección y organización de sus datos) es obra protegida por la Ley N.º 6683 sobre Derechos de Autor
+   y Derechos Conexos de la República de Costa Rica y por los tratados internacionales aplicables,
+   incluido el Convenio de Berna. Su titular es Derek Vásquez González.
+
+2. Uso permitido. Se autoriza únicamente su visualización y uso con fines educativos en los sitios
+   web oficiales autorizados por el titular.
+
+3. Usos prohibidos sin autorización escrita del titular: copiar, reproducir, descargar para
+   redistribuir, modificar, traducir, descompilar, desofuscar o aplicar ingeniería inversa; publicarlo
+   o alojarlo en otros sitios; integrarlo en otros productos; o usarlo con fines comerciales.
+
+4. Componentes de terceros. Los siguientes componentes conservan sus propias licencias, que prevalecen
+   sobre esta en lo que a ellos respecta:
+   - three.js r128 (MIT) · PeerJS (MIT) · qrcode-generator (MIT)
+   - d3-celestial (BSD-3): catálogo de estrellas y constelaciones (sky.json)
+   - Texturas NASA/JPL/USGS (dominio público)
+
+5. Contacto para licencias y autorizaciones: Frost Industries · Athenea Tec Division.
